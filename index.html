@@ -6,7 +6,7 @@
  |                   I caught you!                    |
  |              You can check the repo ;)             |
  |                                                    |
- |   https://github.com/sebasnolascop/offline-page    |
+ |     https://github.com/iamseb4s/offline-page       |
   \__________________________________________________/
                     \     _,      ,_
                      \  ."/   ,_   \'.
@@ -17,100 +17,269 @@
     -->
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>iamsebas.dev</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Hi, I am Sebas! 👾 | iamsebas.dev</title>
     <link rel="icon" href="" />
 
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
+      /* --- CORE STYLES --- */
       body,
       html {
         height: 100%;
         margin: 0;
-        font-family: "Courier New", Courier, monospace;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background-color: #050505;
+        overflow: hidden;
+        user-select: none;
         color: white;
-        background-color: #1a1a2e;
+        overscroll-behavior: none;
       }
 
-      .star-field {
+      #canvas-bg {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-image: radial-gradient(
-            1px 1px at 20px 30px,
-            white,
-            rgba(255, 255, 255, 0)
-          ),
-          radial-gradient(1px 1px at 40px 70px, white, rgba(255, 255, 255, 0)),
-          radial-gradient(1px 1px at 80px 120px, white, rgba(255, 255, 255, 0)),
-          radial-gradient(1px 1px at 130px 190px, white, rgba(255, 255, 255, 0)),
-          radial-gradient(2px 2px at 160px 240px, white, rgba(255, 255, 255, 0)),
-          radial-gradient(1px 1px at 90px 40px, white, rgba(255, 255, 255, 0)),
-          radial-gradient(1px 1px at 150px 100px, white, rgba(255, 255, 255, 0)),
-          radial-gradient(1px 1px at 200px 200px, white, rgba(255, 255, 255, 0));
-        background-size: 250px 250px;
-        background-repeat: repeat;
-        animation: twinkle 15s linear infinite;
+        z-index: 0;
+        background: #000000;
+        cursor: crosshair;
       }
 
-      @keyframes twinkle {
-        from {
-          background-position-y: 0;
+      #warp-flash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        z-index: 100;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1s ease-out;
+      }
+
+      /* --- MOBILE START SCREEN --- */
+      #start-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 200;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s;
+      }
+
+      .start-btn {
+        padding: 15px 40px;
+        background: transparent;
+        border: 1px solid #fa4601;
+        color: #fa4601;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .start-btn:hover {
+        background: #fa4601;
+        color: white;
+        box-shadow: 0 0 20px #fa4601;
+      }
+
+      /* --- HUD (Top Right) --- */
+      #hud-container {
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        pointer-events: none;
+      }
+
+      .hud-value {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hud-unit {
+        font-size: 1rem;
+        color: #fa4601;
+        font-weight: 600;
+      }
+
+      .hud-label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
+        margin-top: 5px;
+      }
+
+      .radar-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+      }
+      .status-active {
+        background-color: #fa4601;
+        box-shadow: 0 0 8px #fa4601;
+        animation: pulseRed 1s infinite;
+      }
+      .status-idle {
+        background-color: #444;
+      }
+
+      @keyframes pulseRed {
+        0% {
+          opacity: 0.5;
+          transform: scale(1);
         }
-        to {
-          background-position-y: -250px;
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+        100% {
+          opacity: 0.5;
+          transform: scale(1);
         }
       }
 
+      /* --- CENTER CONTENT --- */
       .container {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-        min-height: 90vh;
+        min-height: 85vh;
         position: relative;
-        z-index: 1;
+        z-index: 5;
         padding: 20px;
+        pointer-events: none;
+      }
+
+      .container * {
+        pointer-events: auto;
       }
 
       .profile-icon {
-        margin-bottom: 20px;
+        margin-bottom: 30px;
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .profile-icon:hover {
+        transform: scale(1.1);
       }
 
       h1 {
-        font-size: 2.5em;
+        font-size: 3.5em;
         margin: 0;
+        color: #fff;
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       }
 
       .subtitle {
-        font-size: 1.2em;
-        margin: 10px 0;
-        color: #a9a9a9;
+        font-size: 1.1em;
+        margin: 10px 0 20px 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 400;
+        letter-spacing: 0.5px;
       }
 
-      .bio {
-        max-width: 500px;
-        font-size: 1em;
+      /* Bio Card */
+      .bio-card {
+        max-width: 700px;
+        font-size: 1.1em;
         line-height: 1.6;
-        margin: 20px 0;
+        padding: 15px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      /* Footer Sticky Instructions */
+      .instruction-hint {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        padding: 12px 20px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.75em;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .highlight {
+        color: #fa4801c5;
+        font-weight: 700;
+      }
+
+      .brake-hint {
+        display: block;
+        font-size: 0.9em;
+        opacity: 0.7;
+        margin-top: 4px;
+        color: #fa4601;
       }
 
       .social-icons {
-        margin: 10px 0;
+        margin-top: 30px;
       }
-
       .social-icons a {
-        margin: 0 10px;
-        color: white;
-        text-decoration: none;
+        margin: 0 15px;
+        display: inline-block;
+        opacity: 0.7;
+        transition: all 0.3s ease;
       }
-
+      .social-icons a:hover {
+        opacity: 1;
+        transform: scale(1.2);
+      }
       .social-icons svg {
         width: 30px;
         height: 30px;
         fill: white;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 2.2em;
+        }
+        .bio-card {
+          font-size: 0.95em;
+        }
+        .instruction-hint {
+          white-space: normal;
+          width: 90%;
+          bottom: 20px;
+        }
       }
     </style>
   </head>
@@ -121,7 +290,6 @@
         viewBox="0 -0.5 22 24"
         shape-rendering="crispEdges"
       >
-        <metadata>Web Icon: iamsebas.dev</metadata>
         <path
           stroke="#fa4601"
           d="M5 0h1M5 1h1M4 2h1M3 3h2M1 4h1M3 4h1M0 5h3M4 5h1M0 6h2M3 6h2M1 7h4M0 8h1M3 8h2M0 9h1M4 9h1M9 9h1M0 10h7M10 10h1M2 11h1M4 11h1M6 11h3M2 12h1M4 12h2M7 12h1M10 12h1M2 13h5M8 13h1M10 13h1M5 14h4M10 14h1M9 16h1M8 17h2M8 18h1M10 18h1M9 19h2M9 20h1M9 21h1"
@@ -160,70 +328,510 @@
         <path stroke="#fb2000" d="M11 15h1" />
       </symbol>
     </svg>
-    <div class="star-field"></div>
+
+    <canvas id="canvas-bg"></canvas>
+    <div id="warp-flash"></div>
+
+    <div id="start-screen">
+      <svg
+        width="80"
+        height="80"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#fa4601"
+        stroke-width="1"
+        style="margin-bottom: 20px"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 6v12M6 12h12"></path>
+      </svg>
+      <button class="start-btn" onclick="initExperience()">
+        INITIALIZE SYSTEMS
+      </button>
+    </div>
+
+    <div id="hud-container">
+      <div>
+        <span id="speed-count" class="hud-value">60,000</span>
+        <span class="hud-unit">KM/S</span>
+      </div>
+      <div class="hud-label">
+        <span id="radar-dot" class="radar-dot status-idle"></span>
+        WORMHOLE SCANNER
+      </div>
+    </div>
+
     <div class="container">
-      <svg class="profile-icon" width="150" height="150">
+      <svg class="profile-icon" width="130" height="130">
         <use href="#icon-sebas"></use>
       </svg>
-      <h1>Hey, I am Sebas!</h1>
-      <p class="subtitle">Data Scientist, Data Analyst, Lifelong Learner</p>
-      <p class="bio">
-        Now, I am making some changes in this page, working on new projects,
-        learning something new or just having fun. I will be back soon!
+      <h1>Sebas Nolasco</h1>
+      <p class="subtitle">
+        Data Scientist &middot; Developer &middot; Part-time Astronaut
       </p>
+
+      <div class="bio-card">
+        <p>
+          <strong>System resources diverted.</strong> <br />
+          99% of my computing power is currently training neural networks,<br />
+          so the main site is in hibernation mode. While I work on the data,<br />
+          feel free to contact me or take the helm of this ship.
+        </p>
+      </div>
+
       <div class="social-icons">
-        <a href="https://github.com/sebasnolascop" aria-label="GitHub">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            style="fill: rgb(255, 255, 255)"
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-          >
+        <a href="https://github.com/iamseb4s" aria-label="GitHub"
+          ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
             <path
               d="M16,2.345c7.735,0,14,6.265,14,14-.002,6.015-3.839,11.359-9.537,13.282-.7,.14-.963-.298-.963-.665,0-.473,.018-1.978,.018-3.85,0-1.312-.437-2.152-.945-2.59,3.115-.35,6.388-1.54,6.388-6.912,0-1.54-.543-2.783-1.435-3.762,.14-.35,.63-1.785-.14-3.71,0,0-1.173-.385-3.85,1.435-1.12-.315-2.31-.472-3.5-.472s-2.38,.157-3.5,.472c-2.677-1.802-3.85-1.435-3.85-1.435-.77,1.925-.28,3.36-.14,3.71-.892,.98-1.435,2.24-1.435,3.762,0,5.355,3.255,6.563,6.37,6.913-.403,.35-.77,.963-.893,1.872-.805,.368-2.818,.963-4.077-1.155-.263-.42-1.05-1.452-2.152-1.435-1.173,.018-.472,.665,.017,.927,.595,.332,1.277,1.575,1.435,1.978,.28,.787,1.19,2.293,4.707,1.645,0,1.173,.018,2.275,.018,2.607,0,.368-.263,.787-.963,.665-5.719-1.904-9.576-7.255-9.573-13.283,0-7.735,6.265-14,14-14Z"
-            ></path>
-          </svg>
-        </a>
+            ></path></svg
+        ></a>
         <a
           href="https://www.linkedin.com/in/sebasnolascop/"
           aria-label="LinkedIn"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            style="fill: rgb(255, 255, 255)"
-            width="32"
-            height="32"
-            viewBox="0 0 32 32"
-          >
+          ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
             <path
               d="M26.111,3H5.889c-1.595,0-2.889,1.293-2.889,2.889V26.111c0,1.595,1.293,2.889,2.889,2.889H26.111c1.595,0,2.889-1.293,2.889-2.889V5.889c0-1.595-1.293-2.889-2.889-2.889ZM10.861,25.389h-3.877V12.87h3.877v12.519Zm-1.957-14.158c-1.267,0-2.293-1.034-2.293-2.31s1.026-2.31,2.293-2.31,2.292,1.034,2.292,2.31-1.026,2.31-2.292,2.31Zm16.485,14.158h-3.858v-6.571c0-1.802-.685-2.809-2.111-2.809-1.551,0-2.362,1.048-2.362,2.809v6.571h-3.718V12.87h3.718v1.686s1.118-2.069,3.775-2.069,4.556,1.621,4.556,4.975v7.926Z"
               fill-rule="evenodd"
-            ></path>
-          </svg>
-        </a>
-        <a href="mailto:sebas@iamsebas.dev" aria-label="Mail">
-          <svg
+            ></path></svg
+        ></a>
+        <a href="mailto:sebas@iamsebas.dev" aria-label="Mail"
+          ><svg
             xmlns="http://www.w3.org/2000/svg"
-            style="fill: rgb(255, 255, 255)"
             height="30px"
             width="30px"
             viewBox="0 -960 960 960"
           >
             <path
               d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"
-            />
-          </svg>
-        </a>
+            /></svg
+        ></a>
       </div>
     </div>
+
+    <div class="instruction-hint">
+      <span class="highlight">MISSION:</span> Locate the
+      <span style="color: #fa4801c5">Einstein-Rosen Bridge (Wormhole)</span>
+      to warp speed out of here.
+      <span class="brake-hint">Click & Hold to Brake</span>
+    </div>
+
     <script>
       const symbol = document.getElementById("icon-sebas");
       const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${symbol.getAttribute(
         "viewBox"
       )}" shape-rendering="crispEdges">${symbol.innerHTML}</svg>`;
-      const dataUri = `data:image/svg+xml,${encodeURIComponent(fullSvg)}`;
-      document.querySelector('link[rel="icon"]').setAttribute("href", dataUri);
+      document
+        .querySelector('link[rel="icon"]')
+        .setAttribute(
+          "href",
+          `data:image/svg+xml,${encodeURIComponent(fullSvg)}`
+        );
+    </script>
+
+    <script>
+      // --- CONFIGURATION ---
+      const CONFIG = {
+        baseFlightSpeed: 50, // Internal speed base unit
+        maxFlightSpeed: 200, // Internal speed cap
+        speedMultiplier: 1200, // Multiplier for visual KM/S display
+        brakeFactor: 0.3, // Slow down factor
+
+        turnSensitivity: 0.15,
+        turnSpeedMax: 4.5,
+        spawnDistanceMultiplier: 2.5,
+        starCount: 1200,
+        spawnSpreadMultiplier: 8.0,
+        planetCount: 3,
+        planetMinSize: 40,
+        planetMaxSize: 250,
+        blackHoleBaseRadius: 320,
+        depth: 7000,
+        spawnCooldownMin: 2000,
+        spawnCooldownMax: 4000,
+      };
+
+      const canvas = document.getElementById("canvas-bg");
+      const ctx = canvas.getContext("2d");
+      const speedEl = document.getElementById("speed-count");
+      const radarDot = document.getElementById("radar-dot");
+      const warpFlash = document.getElementById("warp-flash");
+      const startScreen = document.getElementById("start-screen");
+
+      // 1. DATA PERSISTENCE
+      let savedScore = localStorage.getItem("interstellar_score");
+      let score = savedScore ? parseInt(savedScore) : 0;
+
+      let width, height, cx, cy;
+      let stars = [];
+      let planets = [];
+      let blackHole = null;
+
+      // 2. SPEED LOGIC
+      let targetFlightSpeed = Math.min(
+        CONFIG.maxFlightSpeed,
+        CONFIG.baseFlightSpeed + score * 2
+      );
+      let currentFlightSpeed = targetFlightSpeed;
+      let isBraking = false;
+
+      let currentTurnX = 0;
+      let currentTurnY = 0;
+      let mouse = { x: 0, y: 0 };
+      let isWarping = false;
+      let useGyro = false;
+
+      // 3. BRAKE MECHANICS
+      window.addEventListener("mousedown", () => (isBraking = true));
+      window.addEventListener("mouseup", () => (isBraking = false));
+      window.addEventListener("touchstart", () => (isBraking = true));
+      window.addEventListener("touchend", () => (isBraking = false));
+
+      let resizeTimeout;
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        cx = width / 2;
+        cy = height / 2;
+        checkDeviceType();
+        if (!useGyro) {
+          mouse.x = cx;
+          mouse.y = cy;
+        }
+      }
+
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(resize, 200);
+      });
+
+      function checkDeviceType() {
+        const isTouch =
+          "ontouchstart" in window || navigator.maxTouchPoints > 0;
+        if (isTouch) {
+          startScreen.style.display = "flex";
+        } else {
+          startScreen.style.display = "none";
+        }
+      }
+
+      resize();
+
+      window.addEventListener("mousemove", (e) => {
+        if (!useGyro) {
+          mouse.x = e.clientX;
+          mouse.y = e.clientY;
+        }
+      });
+
+      async function initExperience() {
+        startScreen.style.opacity = 0;
+        setTimeout(() => (startScreen.style.display = "none"), 500);
+        if (
+          typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+          try {
+            const permissionState =
+              await DeviceOrientationEvent.requestPermission();
+            if (permissionState === "granted") {
+              useGyro = true;
+              window.addEventListener("deviceorientation", handleOrientation);
+            }
+          } catch (error) {
+            console.log("Gyro error:", error);
+          }
+        } else if (window.DeviceOrientationEvent) {
+          useGyro = true;
+          window.addEventListener("deviceorientation", handleOrientation);
+        }
+      }
+
+      function handleOrientation(event) {
+        let yTilt = event.beta - 45;
+        let xTilt = event.gamma;
+        if (xTilt > 40) xTilt = 40;
+        if (xTilt < -40) xTilt = -40;
+        if (yTilt > 40) yTilt = 40;
+        if (yTilt < -40) yTilt = -40;
+        mouse.x = cx + xTilt * (width / 60);
+        mouse.y = cy + yTilt * (height / 60);
+      }
+
+      function randomRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      class Planet {
+        constructor() {
+          this.reset(true);
+        }
+        reset(initial) {
+          const spreadX = width * CONFIG.spawnSpreadMultiplier;
+          const spreadY = height * CONFIG.spawnSpreadMultiplier;
+          this.x = randomRange(-spreadX, spreadX);
+          this.y = randomRange(-spreadY, spreadY);
+          this.z = initial
+            ? randomRange(500, CONFIG.depth)
+            : CONFIG.depth + randomRange(0, 5000);
+          this.size = randomRange(CONFIG.planetMinSize, CONFIG.planetMaxSize);
+          const hue = randomRange(180, 280);
+          this.color1 = `hsl(${hue}, 20%, 25%)`;
+        }
+        update() {
+          this.z -= currentFlightSpeed;
+          this.x -= currentTurnX * (this.z * 0.005);
+          this.y -= currentTurnY * (this.z * 0.005);
+          const boundaryX = width * (CONFIG.spawnSpreadMultiplier + 1);
+          if (this.z < 80 || Math.abs(this.x) > boundaryX) this.reset();
+        }
+        draw() {
+          const p = 400 / this.z;
+          const sx = cx + this.x * p;
+          const sy = cy + this.y * p;
+          const ss = this.size * p;
+          if (sx < -ss || sx > width + ss || sy < -ss || sy > height + ss)
+            return;
+          const grad = ctx.createRadialGradient(
+            sx - ss * 0.3,
+            sy - ss * 0.3,
+            ss * 0.1,
+            sx,
+            sy,
+            ss
+          );
+          grad.addColorStop(0, this.color1);
+          grad.addColorStop(1, "#020202");
+          ctx.beginPath();
+          ctx.fillStyle = grad;
+          ctx.arc(sx, sy, ss, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      class Star {
+        constructor() {
+          this.reset(true);
+        }
+        reset(initial) {
+          const spreadX = width * CONFIG.spawnSpreadMultiplier;
+          const spreadY = height * CONFIG.spawnSpreadMultiplier;
+          this.x = randomRange(-spreadX, spreadX);
+          this.y = randomRange(-spreadY, spreadY);
+          this.z = initial
+            ? randomRange(20, CONFIG.depth)
+            : CONFIG.depth + randomRange(0, 5000);
+        }
+        update() {
+          this.z -= currentFlightSpeed;
+          this.x -= currentTurnX * (this.z * 0.002);
+          this.y -= currentTurnY * (this.z * 0.002);
+          const boundaryX = width * (CONFIG.spawnSpreadMultiplier + 1);
+          if (this.z <= 20 || Math.abs(this.x) > boundaryX) this.reset();
+        }
+        draw() {
+          const p = 400 / this.z;
+          const x = cx + this.x * p;
+          const y = cy + this.y * p;
+          const alpha = Math.min(1, 1 - this.z / (CONFIG.depth + 1000));
+          ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+          ctx.lineWidth = 1.3;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          const op = 400 / (this.z + currentFlightSpeed * 2);
+          const ox = cx + this.x * op;
+          const oy = cy + this.y * op;
+          ctx.lineTo(ox, oy);
+          ctx.stroke();
+        }
+      }
+
+      class BlackHole {
+        constructor() {
+          this.state = "spawning";
+          this.x = 0;
+          this.y = 0;
+          this.z = 0;
+          this.prepareSpawn();
+        }
+        prepareSpawn() {
+          this.state = "spawning";
+          this.z = 99999;
+          updateRadar(false);
+          setTimeout(() => {
+            if (!isWarping) this.spawn();
+          }, randomRange(CONFIG.spawnCooldownMin, CONFIG.spawnCooldownMax));
+        }
+        spawn() {
+          this.state = "active";
+          updateRadar(true);
+          const angle = Math.random() * Math.PI * 2;
+          const distance =
+            Math.max(width, height) *
+            randomRange(1.2, CONFIG.spawnDistanceMultiplier);
+          this.x = Math.cos(angle) * distance;
+          this.y = Math.sin(angle) * distance;
+          this.z = CONFIG.depth + 4000;
+          this.radius = Math.max(150, CONFIG.blackHoleBaseRadius - score * 3);
+        }
+        update() {
+          if (this.state === "spawning") return;
+          this.z -= currentFlightSpeed;
+          this.x -= currentTurnX * (this.z * 0.005);
+          this.y -= currentTurnY * (this.z * 0.005);
+
+          // FIX: Widened collision detection zone (0 to 800) to catch high-speed approaches (Tunneling fix)
+          if (!isWarping && this.z < 800 && this.z > 0) {
+            const p = 400 / this.z;
+            const sx = cx + this.x * p;
+            const sy = cy + this.y * p;
+            const dist = Math.sqrt((sx - cx) ** 2 + (sy - cy) ** 2);
+            // Slightly forgiving hit radius
+            if (dist < this.radius * p * 1.5) triggerWarp();
+          }
+          if (this.z < -2000) this.prepareSpawn();
+        }
+        draw() {
+          if (this.state === "spawning" || this.z <= 10) return;
+          const p = 400 / this.z;
+          const sx = cx + this.x * p;
+          const sy = cy + this.y * p;
+          const s = this.radius * p;
+
+          const distFromCenter = Math.sqrt((sx - cx) ** 2 + (sy - cy) ** 2);
+          if (this.z < 4000 && distFromCenter < width * 2) {
+            const lockSize = s * 1.8;
+            const alpha =
+              Math.min(1, 400 / this.z) *
+              (0.8 + Math.sin(Date.now() / 100) * 0.2);
+            ctx.strokeStyle = `rgba(250, 70, 1, ${alpha})`;
+            ctx.lineWidth = 2;
+            const d = 25;
+            ctx.beginPath();
+            ctx.moveTo(sx - lockSize, sy - lockSize + d);
+            ctx.lineTo(sx - lockSize, sy - lockSize);
+            ctx.lineTo(sx - lockSize + d, sy - lockSize);
+            ctx.moveTo(sx + lockSize - d, sy - lockSize);
+            ctx.lineTo(sx + lockSize, sy - lockSize);
+            ctx.lineTo(sx + lockSize, sy - lockSize + d);
+            ctx.moveTo(sx + lockSize, sy + lockSize - d);
+            ctx.lineTo(sx + lockSize, sy + lockSize);
+            ctx.lineTo(sx + lockSize - d, sy + lockSize);
+            ctx.moveTo(sx - lockSize + d, sy + lockSize);
+            ctx.lineTo(sx - lockSize, sy + lockSize);
+            ctx.lineTo(sx - lockSize, sy + lockSize - d);
+            ctx.stroke();
+          }
+
+          // Opacity fade-in
+          const opacity = Math.min(1, 1 - (this.z - 6000) / 3000);
+          if (opacity <= 0) return;
+          ctx.globalAlpha = opacity;
+
+          ctx.shadowBlur = 40;
+          ctx.shadowColor = "#fa4601";
+          ctx.fillStyle = "#fa4601";
+          ctx.beginPath();
+          ctx.arc(sx, sy, s * 1.1, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = "#fff0e6";
+          ctx.beginPath();
+          ctx.arc(sx, sy, s, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = "#000";
+          ctx.beginPath();
+          ctx.arc(sx, sy, s * 0.95, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      for (let i = 0; i < CONFIG.starCount; i++) stars.push(new Star());
+      for (let i = 0; i < CONFIG.planetCount; i++) planets.push(new Planet());
+      blackHole = new BlackHole();
+
+      function updateRadar(active) {
+        if (active) radarDot.className = "radar-dot status-active";
+        else radarDot.className = "radar-dot status-idle";
+      }
+
+      function triggerWarp() {
+        isWarping = true;
+        currentFlightSpeed = CONFIG.maxFlightSpeed * 1.5; // Visual burst speed
+        warpFlash.style.opacity = 1;
+
+        score++;
+        localStorage.setItem("interstellar_score", score);
+
+        // Update target speed based on new score
+        targetFlightSpeed = Math.min(
+          CONFIG.maxFlightSpeed,
+          CONFIG.baseFlightSpeed + score * 2
+        );
+
+        setTimeout(() => {
+          blackHole.prepareSpawn();
+          planets.forEach((p) => p.reset(true));
+          stars.forEach((s) => s.reset(true));
+
+          warpFlash.style.opacity = 0;
+          isWarping = false;
+        }, 1500);
+      }
+
+      function animate() {
+        ctx.fillStyle = "rgba(0, 0, 0, 1)";
+        ctx.fillRect(0, 0, width, height);
+
+        // --- SPEED CONTROL & DISPLAY ---
+        if (!isWarping) {
+          // Apply braking factor if holding click
+          let activeSpeed = isBraking
+            ? targetFlightSpeed * CONFIG.brakeFactor
+            : targetFlightSpeed;
+          // Smooth transition for speed
+          currentFlightSpeed += (activeSpeed - currentFlightSpeed) * 0.1;
+
+          // Update HUD Display (Velocity * Multiplier)
+          let displaySpeed = Math.floor(
+            currentFlightSpeed * CONFIG.speedMultiplier
+          ).toLocaleString();
+          speedEl.innerText = displaySpeed;
+
+          const targetX = (mouse.x - cx) / cx;
+          const targetY = (mouse.y - cy) / cy;
+
+          // Increase sensitivity when braking for precision steering
+          let sensitivity = isBraking
+            ? CONFIG.turnSensitivity * 1.5
+            : CONFIG.turnSensitivity;
+
+          currentTurnX +=
+            (targetX * CONFIG.turnSpeedMax - currentTurnX) * sensitivity;
+          currentTurnY +=
+            (targetY * CONFIG.turnSpeedMax - currentTurnY) * sensitivity;
+        }
+
+        stars.forEach((s) => {
+          s.update();
+          s.draw();
+        });
+        let renderQueue = [...planets];
+        renderQueue.push(blackHole);
+        renderQueue.sort((a, b) => b.z - a.z);
+        renderQueue.forEach((obj) => {
+          obj.update();
+          obj.draw();
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
     </script>
   </body>
 </html>
