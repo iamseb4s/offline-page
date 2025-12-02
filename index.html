@@ -334,7 +334,7 @@
     <canvas id="canvas-bg"></canvas>
     <div id="warp-flash"></div>
 
-    <div id="start-screen">
+    <div id="start-screen" style="display: none !important">
       <svg
         width="80"
         height="80"
@@ -347,9 +347,7 @@
         <circle cx="12" cy="12" r="10"></circle>
         <path d="M12 6v12M6 12h12"></path>
       </svg>
-      <button class="start-btn" onclick="initExperience()">
-        INITIALIZE SYSTEMS
-      </button>
+      <button class="start-btn">INITIALIZE SYSTEMS</button>
     </div>
 
     <div id="hud-container">
@@ -486,7 +484,9 @@
       // 3. BRAKE MECHANICS
       window.addEventListener("mousedown", () => (isBraking = true));
       window.addEventListener("mouseup", () => (isBraking = false));
-      window.addEventListener("touchstart", () => (isBraking = true));
+      window.addEventListener("touchstart", () => (isBraking = true), {
+        passive: true,
+      });
       window.addEventListener("touchend", () => (isBraking = false));
 
       let resizeTimeout;
@@ -495,7 +495,6 @@
         height = canvas.height = window.innerHeight;
         cx = width / 2;
         cy = height / 2;
-        checkDeviceType();
         if (!useGyro) {
           mouse.x = cx;
           mouse.y = cy;
@@ -507,57 +506,176 @@
         resizeTimeout = setTimeout(resize, 200);
       });
 
-      function checkDeviceType() {
-        const isTouch =
-          "ontouchstart" in window || navigator.maxTouchPoints > 0;
-        if (isTouch) {
-          startScreen.style.display = "flex";
-        } else {
-          startScreen.style.display = "none";
+      // --- New Controls Setup ---
+
+      // Touch state variables
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isTouching = false;
+      let isSteering = false; // To differentiate a tap from a drag
+      const touchDeadzone = 10; // Pixels to move before steering starts
+
+      function setupTouchControls() {
+        console.log("Setting up touch controls.");
+        useGyro = false;
+
+        const instructionHint = document.querySelector(
+          ".instruction-hint .brake-hint"
+        );
+        if (instructionHint) {
+          instructionHint.innerHTML = `Drag to Steer. Hold to Brake.`;
         }
+
+        window.addEventListener(
+          "touchstart",
+          (e) => {
+            if (useGyro) return;
+            isTouching = true;
+            // isBraking is handled by the global listener
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          },
+          { passive: false }
+        );
+
+        window.addEventListener(
+          "touchmove",
+          (e) => {
+            if (useGyro || !isTouching) return;
+            e.preventDefault(); // Prevent page scrolling
+
+            const diffX = e.touches[0].clientX - touchStartX;
+            const diffY = e.touches[0].clientY - touchStartY;
+
+            if (
+              !isSteering &&
+              (Math.abs(diffX) > touchDeadzone ||
+                Math.abs(diffY) > touchDeadzone)
+            ) {
+              isSteering = true; // We've left the deadzone, so we are officially steering
+            }
+
+            if (isSteering) {
+              // Map difference to mouse coordinates for turning.
+              mouse.x = cx + diffX * 1.5;
+              mouse.y = cy + diffY * 1.5;
+
+              // Clamp the movement to avoid going too wild
+              const maxSteer = width / 1.5;
+              mouse.x = Math.max(
+                cx - maxSteer,
+                Math.min(cx + maxSteer, mouse.x)
+              );
+              mouse.y = Math.max(
+                cy - maxSteer,
+                Math.min(cy + maxSteer, mouse.y)
+              );
+            }
+          },
+          { passive: false }
+        );
+
+        window.addEventListener("touchend", (e) => {
+          if (useGyro) return;
+
+          // Reset steering states
+          isTouching = false;
+          isSteering = false;
+          // isBraking is handled by the global listener
+
+          // Return to center when touch is released
+          mouse.x = cx;
+          mouse.y = cy;
+        });
       }
 
-      resize();
-
-      window.addEventListener("mousemove", (e) => {
-        if (!useGyro) {
-          mouse.x = e.clientX;
-          mouse.y = e.clientY;
-        }
-      });
-
-      async function initExperience() {
-        startScreen.style.opacity = 0;
-        setTimeout(() => (startScreen.style.display = "none"), 500);
-        if (
-          typeof DeviceOrientationEvent !== "undefined" &&
-          typeof DeviceOrientationEvent.requestPermission === "function"
-        ) {
+      async function initGyro() {
+        // Standard permission-based API (iOS 13+)
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
           try {
             const permissionState =
               await DeviceOrientationEvent.requestPermission();
             if (permissionState === "granted") {
               useGyro = true;
               window.addEventListener("deviceorientation", handleOrientation);
+              console.log("Gyro enabled.");
+            } else {
+              console.log("Gyro permission denied.");
+              setupTouchControls();
             }
           } catch (error) {
-            console.log("Gyro error:", error);
+            console.log("Gyro requestPermission error:", error);
+            setupTouchControls();
           }
         } else if (window.DeviceOrientationEvent) {
-          useGyro = true;
-          window.addEventListener("deviceorientation", handleOrientation);
+          // Non-permission API (Android, older iOS)
+          // We add a listener and check if it actually provides data.
+          let hasReceivedData = false;
+          const gyroListener = (event) => {
+            if (event.gamma !== null || event.beta !== null) {
+              hasReceivedData = true;
+              useGyro = true;
+              handleOrientation(event);
+              // Once we have data, we can just let handleOrientation take over.
+              // We remove this temporary listener and add the real one.
+              window.removeEventListener("deviceorientation", gyroListener);
+              window.addEventListener("deviceorientation", handleOrientation);
+              console.log("Gyro enabled (detected data).");
+            }
+          };
+          window.addEventListener("deviceorientation", gyroListener);
+
+          // If we don't get data after a short time, assume no gyro is available.
+          setTimeout(() => {
+            if (!hasReceivedData) {
+              window.removeEventListener("deviceorientation", gyroListener);
+              console.log("No gyro data received, falling back to touch.");
+              setupTouchControls();
+            }
+          }, 500);
+        } else {
+          // No gyro support at all
+          console.log("No gyro support.");
+          setupTouchControls();
         }
       }
 
+      function initControls() {
+        const isTouchDevice =
+          "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+        if (isTouchDevice) {
+          initGyro();
+        } else {
+          // Desktop mouse controls
+          console.log("Setting up mouse controls for desktop.");
+          window.addEventListener("mousemove", (e) => {
+            if (!useGyro) {
+              // Should always be false here, but good practice
+              mouse.x = e.clientX;
+              mouse.y = e.clientY;
+            }
+          });
+        }
+      }
+
+      // Initialize everything on load
+      resize();
+      initControls();
+
       function handleOrientation(event) {
-        let yTilt = event.beta - 45;
-        let xTilt = event.gamma;
-        if (xTilt > 40) xTilt = 40;
-        if (xTilt < -40) xTilt = -40;
-        if (yTilt > 40) yTilt = 40;
-        if (yTilt < -40) yTilt = -40;
-        mouse.x = cx + xTilt * (width / 60);
-        mouse.y = cy + yTilt * (height / 60);
+        // Recalibrating the 'neutral' position slightly
+        let yTilt = event.beta - 45; // Forward/backward tilt
+        let xTilt = event.gamma; // Left/right tilt
+
+        // Clamp values to prevent extreme sensitivity
+        const tiltClamp = 40;
+        xTilt = Math.max(-tiltClamp, Math.min(tiltClamp, xTilt));
+        yTilt = Math.max(-tiltClamp, Math.min(tiltClamp, yTilt));
+
+        // Apply tilt to mouse coordinates
+        mouse.x = cx + xTilt * (width / 80); // Adjusted sensitivity
+        mouse.y = cy + yTilt * (height / 80);
       }
 
       function randomRange(min, max) {
