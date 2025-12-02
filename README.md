@@ -12,6 +12,7 @@ This is the interactive offline/maintenance page for [iamsebas.dev](https://iams
 - **Dynamic Speed & Braking**: Feel the acceleration and hold your click or touch to brake and steer with more precision.
 - **Procedurally Generated Universe**: Every flight is unique, with stars and planets spawned in real-time.
 - **Score Persistence**: Your wormhole warp count is saved locally, encouraging you to beat your own high score.
+- **Internationalization (i18n)**: Automatic language detection (English/Spanish) based on browser settings, with a manual override switch.
 
 ## 🛠️ How to Use
 
@@ -23,3 +24,8 @@ Simply open the `index.html` file in any modern web browser. No web server is re
 - **CSS3**
 - **JavaScript (ES6+)**
 - **HTML5 Canvas** for rendering the 2D/3D space simulation.
+
+## 🎨 Final Touches
+
+- **Centered HUD**: The Heads-Up Display is now centered on mobile screens for a better user experience.
+- **Language Switcher**: A circular language switcher has been added to the top-left corner, allowing users to manually toggle between English and Spanish.

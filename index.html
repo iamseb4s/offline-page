@@ -21,7 +21,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Hi, I am Sebas! 👾 | iamsebas.dev</title>
+    <title data-translate-key="title">Hi, I am Sebas! 👾 | iamsebas.dev</title>
     <link rel="icon" href="" />
 
     <link
@@ -261,6 +261,30 @@
         z-index: 21; /* Higher than the base */
       }
 
+      /* --- LANGUAGE SWITCHER --- */
+      #lang-switcher {
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 30;
+        font-size: 0.9em;
+        transition: background-color 0.3s;
+      }
+      #lang-switcher:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+      }
+
       @media (max-width: 600px) {
         h1 {
           font-size: 2.2em;
@@ -285,6 +309,7 @@
   <body>
     <div id="joystick-base"></div>
     <div id="joystick-nub"></div>
+    <div id="lang-switcher">EN</div>
 
     <svg style="display: none">
       <symbol
@@ -339,7 +364,7 @@
         <span id="speed-count" class="hud-value">60,000</span>
         <span class="hud-unit"><strong>KM/S</strong></span>
       </div>
-      <div class="hud-label">
+      <div class="hud-label" data-translate-key="hud_scanner">
         <span id="radar-dot" class="radar-dot status-idle"></span>
         WORMHOLE SCANNER
       </div>
@@ -349,13 +374,13 @@
       <svg class="profile-icon" width="130" height="130">
         <use href="#icon-sebas"></use>
       </svg>
-      <h1>Sebas Nolasco</h1>
-      <p class="subtitle">
+      <h1 data-translate-key="h1">Sebas Nolasco</h1>
+      <p class="subtitle" data-translate-key="subtitle">
         Data Scientist &middot; Developer &middot; Part-time Astronaut
       </p>
 
       <div class="bio-card">
-        <p>
+        <p data-translate-key="bio">
           <strong>System resources diverted.</strong> <br />
           99% of my computing power is currently training neural networks, so
           the main site is in hibernation mode. While I work on the data, feel
@@ -394,10 +419,15 @@
     </div>
 
     <div class="instruction-hint">
-      <span class="highlight">MISSION:</span> Locate the
-      <span style="color: #fa4801c5">Einstein-Rosen Bridge (Wormhole)</span>
-      to warp speed out of here.
-      <span class="brake-hint">Click & Hold to Brake</span>
+      <span class="highlight" data-translate-key="mission">MISSION:</span>
+      <span data-translate-key="mission_text"
+        >Locate the
+        <span style="color: #fa4801c5">Einstein-Rosen Bridge (Wormhole)</span>
+        to warp speed out of here.</span
+      >
+      <span class="brake-hint" data-translate-key="brake_hint"
+        >Click & Hold to Brake</span
+      >
     </div>
 
     <script>
@@ -442,6 +472,7 @@
       const warpFlash = document.getElementById("warp-flash");
       const joystickBase = document.getElementById("joystick-base");
       const joystickNub = document.getElementById("joystick-nub");
+      const langSwitcher = document.getElementById("lang-switcher");
 
       // 1. DATA PERSISTENCE
       let savedScore = localStorage.getItem("interstellar_score");
@@ -491,7 +522,50 @@
         resizeTimeout = setTimeout(resize, 200);
       });
 
-      // --- New Controls Setup ---
+      // --- i18n & CONTROLS ---
+
+      const translations = {
+        en: {
+          title: "Hi, I am Sebas! 👾 | iamsebas.dev",
+          h1: "Sebas Nolasco",
+          subtitle:
+            "Data Scientist &middot; Developer &middot; Part-time Astronaut",
+          bio: `<strong>System resources diverted.</strong> <br /> 99% of my computing power is currently training neural networks, so the main site is in hibernation mode. While I work on the data, feel free to contact me or take the helm of this ship.`,
+          mission: "MISSION:",
+          mission_text: `Locate the <span style="color: #fa4801c5">Einstein-Rosen Bridge (Wormhole)</span> to warp speed out of here.`,
+          brake_hint: "Click & Hold to Brake",
+          hud_scanner: "WORMHOLE SCANNER",
+        },
+        es: {
+          title: "¡Hola, soy Sebas! 👾 | iamsebas.dev",
+          h1: "Sebas Nolasco",
+          subtitle:
+            "Científico de Datos &middot; Desarrollador &middot; Astronauta a medio tiempo",
+          bio: `<strong>Recursos del sistema desviados.</strong> <br /> El 99% de mi potencia de cálculo está entrenando redes neuronales, por lo que el sitio principal está en modo de hibernación. Mientras trabajo en los datos, siéntete libre de contactarme o tomar el timón de esta nave.`,
+          mission: "MISIÓN:",
+          mission_text: `Localiza el <span style="color: #fa4801c5">Puente Einstein-Rosen (Agujero de Gusano)</span> para salir a toda velocidad de aquí.`,
+          brake_hint: "Clic & Mantener para Frenar",
+          hud_scanner: "ESCÁNER DE AGUJEROS",
+        },
+      };
+
+      let currentLang = "en";
+
+      function setLanguage(lang) {
+        if (!translations[lang]) return;
+        currentLang = lang;
+        langSwitcher.innerText = lang.toUpperCase();
+        document.querySelectorAll("[data-translate-key]").forEach((el) => {
+          const key = el.getAttribute("data-translate-key");
+          if (translations[lang][key]) {
+            if (key === "title") {
+              document.title = translations[lang][key];
+            } else {
+              el.innerHTML = translations[lang][key];
+            }
+          }
+        });
+      }
 
       // Touch state variables
       let touchStartX = 0;
@@ -499,7 +573,7 @@
       let isTouching = false;
       let isSteering = false;
       const touchDeadzone = 10;
-      const joystickBaseRadius = 60; // 120px width / 2
+      const joystickBaseRadius = 60;
 
       function setupTouchControls() {
         console.log("Setting up touch controls.");
@@ -574,11 +648,9 @@
         window.addEventListener("touchend", (e) => {
           if (useGyro) return;
 
-          // Reset steering states
           isTouching = false;
           isSteering = false;
 
-          // Return to center when touch is released
           mouse.x = cx;
           mouse.y = cy;
 
@@ -608,7 +680,6 @@
             setupTouchControls();
           }
         } else if (window.DeviceOrientationEvent) {
-          // Non-permission API (Android, older iOS)
           let hasReceivedData = false;
           const gyroListener = (event) => {
             if (event.gamma !== null || event.beta !== null) {
@@ -640,6 +711,15 @@
         const isTouchDevice =
           "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
+        // Language Setup
+        const userLang = (navigator.language || "en").slice(0, 2);
+        setLanguage(userLang === "es" ? "es" : "en");
+        langSwitcher.addEventListener("click", () => {
+          const newLang = currentLang === "en" ? "es" : "en";
+          setLanguage(newLang);
+        });
+
+        // Control Setup
         if (isTouchDevice) {
           initGyro();
         } else {
