@@ -67,40 +67,6 @@
         transition: opacity 1s ease-out;
       }
 
-      /* --- MOBILE START SCREEN --- */
-      #start-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        z-index: 200;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        transition: opacity 0.5s;
-      }
-
-      .start-btn {
-        padding: 15px 40px;
-        background: transparent;
-        border: 1px solid #fa4601;
-        color: #fa4601;
-        font-family: "Inter", sans-serif;
-        font-weight: 700;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: all 0.3s;
-      }
-      .start-btn:hover {
-        background: #fa4601;
-        color: white;
-        box-shadow: 0 0 20px #fa4601;
-      }
-
       /* --- HUD (Top Right) --- */
       #hud-container {
         position: fixed;
@@ -207,7 +173,7 @@
 
       .subtitle {
         font-size: 1.1em;
-        margin: 10px 0 20px 0;
+        margin: 10px 0 10px 0;
         color: rgba(255, 255, 255, 0.7);
         font-weight: 400;
         letter-spacing: 0.5px;
@@ -218,7 +184,7 @@
         max-width: 570px;
         font-size: 1.1em;
         line-height: 1.6;
-        padding: 15px;
+        padding: 10px;
         color: rgba(255, 255, 255, 0.9);
       }
 
@@ -252,7 +218,7 @@
       }
 
       .social-icons {
-        margin-top: 30px;
+        margin-top: 10px;
       }
       .social-icons a {
         margin: 0 15px;
@@ -265,9 +231,34 @@
         transform: scale(1.2);
       }
       .social-icons svg {
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
         fill: white;
+      }
+
+      /* --- JOYSTICK STYLES --- */
+      #joystick-base {
+        position: fixed;
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: none; /* Hidden by default */
+        pointer-events: none;
+        transform: translate(-50%, -50%); /* Center on touch point */
+        z-index: 20;
+      }
+
+      #joystick-nub {
+        position: fixed;
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        display: none; /* Hidden by default */
+        pointer-events: none;
+        transform: translate(-50%, -50%); /* Center on touch point */
+        z-index: 21; /* Higher than the base */
       }
 
       @media (max-width: 600px) {
@@ -282,10 +273,19 @@
           width: 90%;
           bottom: 20px;
         }
+        #hud-container {
+          left: 50%;
+          transform: translateX(-50%);
+          right: auto;
+          align-items: center;
+        }
       }
     </style>
   </head>
   <body>
+    <div id="joystick-base"></div>
+    <div id="joystick-nub"></div>
+
     <svg style="display: none">
       <symbol
         id="icon-sebas"
@@ -333,22 +333,6 @@
 
     <canvas id="canvas-bg"></canvas>
     <div id="warp-flash"></div>
-
-    <div id="start-screen" style="display: none !important">
-      <svg
-        width="80"
-        height="80"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#fa4601"
-        stroke-width="1"
-        style="margin-bottom: 20px"
-      >
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M12 6v12M6 12h12"></path>
-      </svg>
-      <button class="start-btn">INITIALIZE SYSTEMS</button>
-    </div>
 
     <div id="hud-container">
       <div>
@@ -456,7 +440,8 @@
       const speedEl = document.getElementById("speed-count");
       const radarDot = document.getElementById("radar-dot");
       const warpFlash = document.getElementById("warp-flash");
-      const startScreen = document.getElementById("start-screen");
+      const joystickBase = document.getElementById("joystick-base");
+      const joystickNub = document.getElementById("joystick-nub");
 
       // 1. DATA PERSISTENCE
       let savedScore = localStorage.getItem("interstellar_score");
@@ -512,28 +497,29 @@
       let touchStartX = 0;
       let touchStartY = 0;
       let isTouching = false;
-      let isSteering = false; // To differentiate a tap from a drag
-      const touchDeadzone = 10; // Pixels to move before steering starts
+      let isSteering = false;
+      const touchDeadzone = 10;
+      const joystickBaseRadius = 60; // 120px width / 2
 
       function setupTouchControls() {
         console.log("Setting up touch controls.");
         useGyro = false;
 
-        const instructionHint = document.querySelector(
-          ".instruction-hint .brake-hint"
-        );
-        if (instructionHint) {
-          instructionHint.innerHTML = `Drag to Steer. Hold to Brake.`;
-        }
-
         window.addEventListener(
           "touchstart",
           (e) => {
             if (useGyro) return;
+            const touch = e.touches[0];
             isTouching = true;
-            // isBraking is handled by the global listener
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+
+            joystickBase.style.display = "block";
+            joystickNub.style.display = "block";
+            joystickBase.style.left = `${touchStartX}px`;
+            joystickBase.style.top = `${touchStartY}px`;
+            joystickNub.style.left = `${touchStartX}px`;
+            joystickNub.style.top = `${touchStartY}px`;
           },
           { passive: false }
         );
@@ -542,25 +528,22 @@
           "touchmove",
           (e) => {
             if (useGyro || !isTouching) return;
-            e.preventDefault(); // Prevent page scrolling
+            e.preventDefault();
 
-            const diffX = e.touches[0].clientX - touchStartX;
-            const diffY = e.touches[0].clientY - touchStartY;
+            const touch = e.touches[0];
+            const diffX = touch.clientX - touchStartX;
+            const diffY = touch.clientY - touchStartY;
 
-            if (
-              !isSteering &&
-              (Math.abs(diffX) > touchDeadzone ||
-                Math.abs(diffY) > touchDeadzone)
-            ) {
-              isSteering = true; // We've left the deadzone, so we are officially steering
+            const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+            if (!isSteering && distance > touchDeadzone) {
+              isSteering = true;
             }
 
             if (isSteering) {
-              // Map difference to mouse coordinates for turning.
-              mouse.x = cx + diffX * 1.5;
-              mouse.y = cy + diffY * 1.5;
+              mouse.x = cx + diffX * 2;
+              mouse.y = cy + diffY * 2;
 
-              // Clamp the movement to avoid going too wild
               const maxSteer = width / 1.5;
               mouse.x = Math.max(
                 cx - maxSteer,
@@ -570,6 +553,19 @@
                 cy - maxSteer,
                 Math.min(cy + maxSteer, mouse.y)
               );
+
+              // Update nub position
+              let nubX = touchStartX + diffX;
+              let nubY = touchStartY + diffY;
+
+              if (distance > joystickBaseRadius) {
+                const angle = Math.atan2(diffY, diffX);
+                nubX = touchStartX + Math.cos(angle) * joystickBaseRadius;
+                nubY = touchStartY + Math.sin(angle) * joystickBaseRadius;
+              }
+
+              joystickNub.style.left = `${nubX}px`;
+              joystickNub.style.top = `${nubY}px`;
             }
           },
           { passive: false }
@@ -581,16 +577,17 @@
           // Reset steering states
           isTouching = false;
           isSteering = false;
-          // isBraking is handled by the global listener
 
           // Return to center when touch is released
           mouse.x = cx;
           mouse.y = cy;
+
+          joystickBase.style.display = "none";
+          joystickNub.style.display = "none";
         });
       }
 
       async function initGyro() {
-        // Standard permission-based API (iOS 13+)
         if (typeof DeviceOrientationEvent.requestPermission === "function") {
           try {
             const permissionState =
@@ -600,24 +597,23 @@
               window.addEventListener("deviceorientation", handleOrientation);
               console.log("Gyro enabled.");
             } else {
-              console.log("Gyro permission denied.");
+              console.log("Gyro permission denied, falling back to touch.");
               setupTouchControls();
             }
           } catch (error) {
-            console.log("Gyro requestPermission error:", error);
+            console.log(
+              "Gyro requestPermission error, falling back to touch:",
+              error
+            );
             setupTouchControls();
           }
         } else if (window.DeviceOrientationEvent) {
           // Non-permission API (Android, older iOS)
-          // We add a listener and check if it actually provides data.
           let hasReceivedData = false;
           const gyroListener = (event) => {
             if (event.gamma !== null || event.beta !== null) {
               hasReceivedData = true;
               useGyro = true;
-              handleOrientation(event);
-              // Once we have data, we can just let handleOrientation take over.
-              // We remove this temporary listener and add the real one.
               window.removeEventListener("deviceorientation", gyroListener);
               window.addEventListener("deviceorientation", handleOrientation);
               console.log("Gyro enabled (detected data).");
@@ -625,17 +621,17 @@
           };
           window.addEventListener("deviceorientation", gyroListener);
 
-          // If we don't get data after a short time, assume no gyro is available.
           setTimeout(() => {
             if (!hasReceivedData) {
               window.removeEventListener("deviceorientation", gyroListener);
-              console.log("No gyro data received, falling back to touch.");
+              console.log(
+                "No gyro data received, falling back to touch controls."
+              );
               setupTouchControls();
             }
           }, 500);
         } else {
-          // No gyro support at all
-          console.log("No gyro support.");
+          console.log("No gyro support, falling back to touch controls.");
           setupTouchControls();
         }
       }
@@ -647,11 +643,9 @@
         if (isTouchDevice) {
           initGyro();
         } else {
-          // Desktop mouse controls
           console.log("Setting up mouse controls for desktop.");
           window.addEventListener("mousemove", (e) => {
             if (!useGyro) {
-              // Should always be false here, but good practice
               mouse.x = e.clientX;
               mouse.y = e.clientY;
             }
@@ -664,17 +658,14 @@
       initControls();
 
       function handleOrientation(event) {
-        // Recalibrating the 'neutral' position slightly
-        let yTilt = event.beta - 45; // Forward/backward tilt
-        let xTilt = event.gamma; // Left/right tilt
+        let yTilt = event.beta - 45;
+        let xTilt = event.gamma;
 
-        // Clamp values to prevent extreme sensitivity
         const tiltClamp = 40;
         xTilt = Math.max(-tiltClamp, Math.min(tiltClamp, xTilt));
         yTilt = Math.max(-tiltClamp, Math.min(tiltClamp, yTilt));
 
-        // Apply tilt to mouse coordinates
-        mouse.x = cx + xTilt * (width / 80); // Adjusted sensitivity
+        mouse.x = cx + xTilt * (width / 80);
         mouse.y = cy + yTilt * (height / 80);
       }
 
@@ -696,7 +687,8 @@
             : CONFIG.depth + randomRange(0, 5000);
           this.size = randomRange(CONFIG.planetMinSize, CONFIG.planetMaxSize);
           const hue = randomRange(180, 280);
-          this.color1 = `hsl(${hue}, 20%, 25%)`;
+          this.color1 = `hsl(${hue}, 20%, 25%)
+`;
         }
         update() {
           this.z -= currentFlightSpeed;
