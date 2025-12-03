@@ -281,7 +281,7 @@
         transition: background-color 0.3s;
       }
       #lang-switcher:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.3);
         transform: scale(1.05);
       }
 
@@ -364,9 +364,9 @@
         <span id="speed-count" class="hud-value">60,000</span>
         <span class="hud-unit"><strong>KM/S</strong></span>
       </div>
-      <div class="hud-label" data-translate-key="hud_scanner">
+      <div class="hud-label">
         <span id="radar-dot" class="radar-dot status-idle"></span>
-        WORMHOLE SCANNER
+        <span data-translate-key="hud_scanner">WORMHOLE SCANNER</span>
       </div>
     </div>
 
@@ -532,8 +532,8 @@
             "Data Scientist &middot; Developer &middot; Part-time Astronaut",
           bio: `<strong>System resources diverted.</strong> <br /> 99% of my computing power is currently training neural networks, so the main site is in hibernation mode. While I work on the data, feel free to contact me or take the helm of this ship.`,
           mission: "MISSION:",
-          mission_text: `Locate the <span style="color: #fa4801c5">Einstein-Rosen Bridge (Wormhole)</span> to warp speed out of here.`,
-          brake_hint: "Click & Hold to Brake",
+          mission_text: `Navigate the cosmos to find the <span style='color: #fa4801c5'>Einstein-Rosen Bridge (Wormhole)</span> and find a time shortcut to the main page.`,
+          brake_hint: "Use your device to steer, press and hold to brake.",
           hud_scanner: "WORMHOLE SCANNER",
         },
         es: {
@@ -543,8 +543,9 @@
             "Científico de Datos &middot; Desarrollador &middot; Astronauta a medio tiempo",
           bio: `<strong>Recursos del sistema desviados.</strong> <br /> El 99% de mi potencia de cálculo está entrenando redes neuronales, por lo que el sitio principal está en modo de hibernación. Mientras trabajo en los datos, siéntete libre de contactarme o tomar el timón de esta nave.`,
           mission: "MISIÓN:",
-          mission_text: `Localiza el <span style="color: #fa4801c5">Puente Einstein-Rosen (Agujero de Gusano)</span> para salir a toda velocidad de aquí.`,
-          brake_hint: "Clic & Mantener para Frenar",
+          mission_text: `Navega el cosmos para encontrar el <span style='color: #fa4801c5'>Puente Einstein-Rosen (Agujero de Gusano)</span> y encontrar un atajo en el tiempo a la página principal.`,
+          brake_hint:
+            "Usa tu dispositivo para pilotar, mantén pulsado para frenar.",
           hud_scanner: "ESCÁNER DE AGUJEROS",
         },
       };
