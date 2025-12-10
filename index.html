@@ -43,15 +43,15 @@
         overscroll-behavior: none;
       }
 
-      #canvas-bg {
+      #canvas-container {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         z-index: 0;
-        background: #000000;
-        cursor: crosshair;
+        outline: none;
+        background: radial-gradient(circle at center, #111 0%, #000 100%);
       }
 
       #warp-flash {
@@ -64,7 +64,6 @@
         z-index: 100;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 1s ease-out;
       }
 
       /* --- HUD (Top Right) --- */
@@ -147,6 +146,7 @@
         z-index: 5;
         padding: 20px;
         pointer-events: none;
+        transition: opacity 0.5s ease; /* Para ocultar suavemente al entrar */
       }
 
       .container * {
@@ -179,16 +179,14 @@
         letter-spacing: 0.5px;
       }
 
-      /* Bio Card */
       .bio-card {
-        max-width: 570px;
+        max-width: 650px;
         font-size: 1.1em;
         line-height: 1.6;
         padding: 10px;
         color: rgba(255, 255, 255, 0.9);
       }
 
-      /* Footer Sticky Instructions */
       .instruction-hint {
         position: fixed;
         bottom: 10px;
@@ -243,9 +241,9 @@
         height: 120px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
-        display: none; /* Hidden by default */
+        display: none;
         pointer-events: none;
-        transform: translate(-50%, -50%); /* Center on touch point */
+        transform: translate(-50%, -50%);
         z-index: 20;
       }
 
@@ -255,13 +253,12 @@
         height: 50px;
         background: rgba(255, 255, 255, 0.25);
         border-radius: 50%;
-        display: none; /* Hidden by default */
+        display: none;
         pointer-events: none;
-        transform: translate(-50%, -50%); /* Center on touch point */
-        z-index: 21; /* Higher than the base */
+        transform: translate(-50%, -50%);
+        z-index: 21;
       }
 
-      /* --- LANGUAGE SWITCHER --- */
       #lang-switcher {
         position: fixed;
         top: 30px;
@@ -305,6 +302,14 @@
         }
       }
     </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="joystick-base"></div>
@@ -356,7 +361,7 @@
       </symbol>
     </svg>
 
-    <canvas id="canvas-bg"></canvas>
+    <div id="canvas-container"></div>
     <div id="warp-flash"></div>
 
     <div id="hud-container">
@@ -370,7 +375,7 @@
       </div>
     </div>
 
-    <div class="container">
+    <div class="container" id="main-ui">
       <svg class="profile-icon" width="130" height="130">
         <use href="#icon-sebas"></use>
       </svg>
@@ -389,23 +394,26 @@
       </div>
 
       <div class="social-icons">
-        <a href="https://github.com/iamseb4s" aria-label="GitHub"
-          ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        <a href="https://github.com/iamseb4s" aria-label="GitHub">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
             <path
               d="M16,2.345c7.735,0,14,6.265,14,14-.002,6.015-3.839,11.359-9.537,13.282-.7,.14-.963-.298-.963-.665,0-.473,.018-1.978,.018-3.85,0-1.312-.437-2.152-.945-2.59,3.115-.35,6.388-1.54,6.388-6.912,0-1.54-.543-2.783-1.435-3.762,.14-.35,.63-1.785-.14-3.71,0,0-1.173-.385-3.85,1.435-1.12-.315-2.31-.472-3.5-.472s-2.38,.157-3.5,.472c-2.677-1.802-3.85-1.435-3.85-1.435-.77,1.925-.28,3.36-.14,3.71-.892,.98-1.435,2.24-1.435,3.762,0,5.355,3.255,6.563,6.37,6.913-.403,.35-.77,.963-.893,1.872-.805,.368-2.818,.963-4.077-1.155-.263-.42-1.05-1.452-2.152-1.435-1.173,.018-.472,.665,.017,.927,.595,.332,1.277,1.575,1.435,1.978,.28,.787,1.19,2.293,4.707,1.645,0,1.173,.018,2.275,.018,2.607,0,.368-.263,.787-.963,.665-5.719-1.904-9.576-7.255-9.573-13.283,0-7.735,6.265-14,14-14Z"
-            ></path></svg
-        ></a>
+            ></path>
+          </svg>
+        </a>
         <a
           href="https://www.linkedin.com/in/sebasnolascop/"
           aria-label="LinkedIn"
-          ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
             <path
               d="M26.111,3H5.889c-1.595,0-2.889,1.293-2.889,2.889V26.111c0,1.595,1.293,2.889,2.889,2.889H26.111c1.595,0,2.889-1.293,2.889-2.889V5.889c0-1.595-1.293-2.889-2.889-2.889ZM10.861,25.389h-3.877V12.87h3.877v12.519Zm-1.957-14.158c-1.267,0-2.293-1.034-2.293-2.31s1.026-2.31,2.293-2.31,2.292,1.034,2.292,2.31-1.026,2.31-2.292,2.31Zm16.485,14.158h-3.858v-6.571c0-1.802-.685-2.809-2.111-2.809-1.551,0-2.362,1.048-2.362,2.809v6.571h-3.718V12.87h3.718v1.686s1.118-2.069,3.775-2.069,4.556,1.621,4.556,4.975v7.926Z"
               fill-rule="evenodd"
-            ></path></svg
-        ></a>
-        <a href="mailto:sebas@iamsebas.dev" aria-label="Mail"
-          ><svg
+            ></path>
+          </svg>
+        </a>
+        <a href="mailto:sebas@iamsebas.dev" aria-label="Mail">
+          <svg
             xmlns="http://www.w3.org/2000/svg"
             height="30px"
             width="30px"
@@ -413,8 +421,9 @@
           >
             <path
               d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"
-            /></svg
-        ></a>
+            />
+          </svg>
+        </a>
       </div>
     </div>
 
@@ -443,87 +452,630 @@
         );
     </script>
 
-    <script>
+    <script type="module">
+      import * as THREE from "three";
+
       // --- CONFIGURATION ---
       const CONFIG = {
-        baseFlightSpeed: 50, // Internal speed base unit
-        maxFlightSpeed: 200, // Internal speed cap
-        speedMultiplier: 1200, // Multiplier for visual KM/S display
-        brakeFactor: 0.3, // Slow down factor
-
-        turnSensitivity: 0.15,
-        turnSpeedMax: 4.5,
-        spawnDistanceMultiplier: 2.5,
-        starCount: 1200,
-        spawnSpreadMultiplier: 8.0,
-        planetCount: 3,
-        planetMinSize: 40,
-        planetMaxSize: 250,
-        blackHoleBaseRadius: 320,
-        depth: 7000,
-        spawnCooldownMin: 2000,
-        spawnCooldownMax: 4000,
+        baseFlightSpeed: 750,
+        brakeFactor: 0.3,
+        starCount: 1500,
+        depth: 4000,
+        fov: 80,
+        turnSpeed: 1.5,
+        tunnelDepth: 4000, // Increased length for longer travel
+        tunnelBendForce: 600, // Higher curvature force
       };
 
-      const canvas = document.getElementById("canvas-bg");
-      const ctx = canvas.getContext("2d");
       const speedEl = document.getElementById("speed-count");
       const radarDot = document.getElementById("radar-dot");
       const warpFlash = document.getElementById("warp-flash");
       const joystickBase = document.getElementById("joystick-base");
       const joystickNub = document.getElementById("joystick-nub");
       const langSwitcher = document.getElementById("lang-switcher");
+      const mainUI = document.getElementById("main-ui");
 
-      // 1. DATA PERSISTENCE
+      // --- THREE.JS SETUP ---
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x000000, CONFIG.depth - 1000, CONFIG.depth);
+
+      const camera = new THREE.PerspectiveCamera(
+        CONFIG.fov,
+        window.innerWidth / window.innerHeight,
+        1, // Small near plane to avoid clipping the tunnel
+        CONFIG.depth + 10000
+      );
+      camera.position.set(0, 0, 0);
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      document
+        .getElementById("canvas-container")
+        .appendChild(renderer.domElement);
+
+      // --- STAR LINES ---
+      const starGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(CONFIG.starCount * 6);
+      const velocities = new Float32Array(CONFIG.starCount);
+      const spread = 4000;
+      const halfSpread = spread / 2;
+
+      for (let i = 0; i < CONFIG.starCount; i++) {
+        const i6 = i * 6;
+        const x = (Math.random() - 0.5) * spread;
+        const y = (Math.random() - 0.5) * spread;
+        const z = (Math.random() - 0.5) * spread;
+        positions[i6] = x;
+        positions[i6 + 1] = y;
+        positions[i6 + 2] = z;
+        positions[i6 + 3] = x;
+        positions[i6 + 4] = y;
+        positions[i6 + 5] = z;
+        velocities[i] = 1 + Math.random();
+      }
+
+      starGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      const starMat = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.6,
+      });
+      const stars = new THREE.LineSegments(starGeo, starMat);
+      scene.add(stars);
+
+      // --- BLACK HOLE GROUP ---
+      const blackHoleGroup = new THREE.Group();
+      scene.add(blackHoleGroup);
+
+      const TUNNEL_CONFIG = {
+        topRadius: 150,
+        bottomRadius: 60,
+        depth: CONFIG.tunnelDepth,
+        segmentsVert: 60, // Higher resolution for smooth travel
+        segmentsRad: 30,
+        bendStart: 0.1,
+        fadeStart: 0.01,
+        wallOpacity: 0.5,
+        wireframeOpacity: 0.4, // More visible
+      };
+
+      // --- MATH HELPER FOR CURVE ---
+      // Shared function between geometry and camera
+      // Returns X offset for a given depth (0 to 1)
+      function getCurveOffset(depthRatio) {
+        if (depthRatio <= TUNNEL_CONFIG.bendStart) return 0;
+        const effectiveBendRatio =
+          (depthRatio - TUNNEL_CONFIG.bendStart) /
+          (1 - TUNNEL_CONFIG.bendStart);
+        return CONFIG.tunnelBendForce * Math.pow(effectiveBendRatio, 2);
+      }
+
+      const wellPoints = [];
+      for (let i = 0; i <= TUNNEL_CONFIG.segmentsVert; i++) {
+        const t = i / TUNNEL_CONFIG.segmentsVert;
+        const radius =
+          TUNNEL_CONFIG.bottomRadius +
+          (TUNNEL_CONFIG.topRadius - TUNNEL_CONFIG.bottomRadius) *
+            Math.pow(1 - t, 5);
+        // Generate straight tube in Y, curve applied in vertex loop
+        const y = -TUNNEL_CONFIG.depth * t;
+        wellPoints.push(new THREE.Vector2(radius, y));
+      }
+
+      const wellGeo = new THREE.LatheGeometry(
+        wellPoints,
+        TUNNEL_CONFIG.segmentsRad
+      );
+      const pos = wellGeo.attributes.position;
+      const count = pos.count;
+      const colors = new Float32Array(count * 3);
+      const alphas = new Float32Array(count);
+
+      const cRed = new THREE.Color(0xffaa00);
+      const cOrange = new THREE.Color(0xffaa00);
+      const cAmber = new THREE.Color(0xffaa33);
+      const tempColor = new THREE.Color();
+
+      for (let i = 0; i < count; i++) {
+        const y = pos.getY(i);
+        const x = pos.getX(i);
+        const depthRatio = Math.abs(y / TUNNEL_CONFIG.depth);
+
+        // Apply curve to mesh
+        const bendAmount = getCurveOffset(depthRatio);
+        pos.setX(i, x + bendAmount);
+
+        // COLORS
+        if (depthRatio < 0.15) {
+          tempColor.copy(cRed).lerp(cOrange, depthRatio / 0.15);
+        } else if (depthRatio < 0.3) {
+          tempColor.copy(cOrange).lerp(cAmber, (depthRatio - 0.15) / 0.15);
+        } else {
+          tempColor.copy(cAmber);
+        }
+        colors[i * 3] = tempColor.r;
+        colors[i * 3 + 1] = tempColor.g;
+        colors[i * 3 + 2] = tempColor.b;
+
+        // ALPHA
+        let alpha = 1.0;
+        if (depthRatio > TUNNEL_CONFIG.fadeStart) {
+          const fadeProgress =
+            (depthRatio - TUNNEL_CONFIG.fadeStart) /
+            (1.0 - TUNNEL_CONFIG.fadeStart);
+          alpha = 1.0 - fadeProgress;
+          alpha = Math.max(0, alpha);
+          alpha = Math.pow(alpha, 2);
+        }
+        alphas[i] = alpha;
+      }
+
+      wellGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      wellGeo.setAttribute("alpha", new THREE.BufferAttribute(alphas, 1));
+
+      // WIREFRAME SETUP (Visible wireframe)
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute("position", wellGeo.attributes.position);
+      lineGeo.setAttribute("color", wellGeo.attributes.color);
+      lineGeo.setAttribute("alpha", wellGeo.attributes.alpha);
+      const lineIndices = [];
+      const pointsPerCol = TUNNEL_CONFIG.segmentsVert + 1;
+
+      for (let i = 0; i <= TUNNEL_CONFIG.segmentsRad; i++) {
+        for (let j = 0; j < TUNNEL_CONFIG.segmentsVert; j++) {
+          const current = i * pointsPerCol + j;
+          lineIndices.push(current, current + 1);
+        }
+      }
+      for (let i = 0; i < TUNNEL_CONFIG.segmentsRad; i++) {
+        for (let j = 0; j <= TUNNEL_CONFIG.segmentsVert; j++) {
+          const current = i * pointsPerCol + j;
+          const right = (i + 1) * pointsPerCol + j;
+          lineIndices.push(current, right);
+        }
+      }
+      lineGeo.setIndex(lineIndices);
+
+      const wireMat = new THREE.LineBasicMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: TUNNEL_CONFIG.wireframeOpacity,
+        blending: THREE.AdditiveBlending,
+        depthTest: true,
+      });
+
+      // Inject Shader for Alpha on Wireframe
+      wireMat.onBeforeCompile = (shader) => {
+        shader.vertexShader = `
+          attribute float alpha;
+          varying float vAlpha;
+          ${shader.vertexShader}
+        `.replace(
+          `#include <color_vertex>`,
+          `#include <color_vertex>\n vAlpha = alpha;`
+        );
+        shader.fragmentShader = `
+          varying float vAlpha;
+          ${shader.fragmentShader}
+        `.replace(
+          `#include <color_fragment>`,
+          `#include <color_fragment>\n diffuseColor.a *= vAlpha;`
+        );
+      };
+
+      const wireMesh = new THREE.LineSegments(lineGeo, wireMat);
+      wireMesh.rotation.x = Math.PI / 2;
+      wireMesh.scale.set(0.98, 0.98, 0.98);
+      wireMesh.renderOrder = 2;
+      blackHoleGroup.add(wireMesh);
+
+      // INNER HULL (Black background of the tube)
+      const innerHullMat = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        side: THREE.FrontSide, // Visible from inside
+        transparent: false,
+      });
+      const innerHull = new THREE.Mesh(wellGeo, innerHullMat);
+      innerHull.rotation.x = Math.PI / 2;
+      innerHull.scale.set(0.99, 0.99, 0.99);
+      innerHull.renderOrder = -1;
+      blackHoleGroup.add(innerHull);
+
+      // 2. OUTER HULL (Invisible occluder from outside)
+      const outerHullMat = new THREE.MeshBasicMaterial({
+        colorWrite: false,
+        depthWrite: true,
+        side: THREE.BackSide,
+      });
+      const outerHull = new THREE.Mesh(wellGeo, outerHullMat);
+      outerHull.rotation.x = Math.PI / 2;
+      outerHull.scale.set(1.005, 1.005, 1.005);
+      outerHull.renderOrder = -2;
+      blackHoleGroup.add(outerHull);
+
+      // GLOW
+      function createGlowTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext("2d");
+        const c = 256;
+        const grd = ctx.createRadialGradient(c, c, 180, c, c, 256);
+        grd.addColorStop(0.0, "rgba(0, 0, 0, 0)");
+        grd.addColorStop(0.4, "rgba(212, 0, 1, 0.05)");
+        grd.addColorStop(0.6, "rgba(251, 32, 0, 0.4)");
+        grd.addColorStop(0.8, "rgba(250, 70, 1, 1.0)");
+        grd.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, 512, 512);
+        return new THREE.CanvasTexture(canvas);
+      }
+      const glowSize = TUNNEL_CONFIG.topRadius * 2.3;
+      const glowMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(glowSize, glowSize),
+        new THREE.MeshBasicMaterial({
+          map: createGlowTexture(),
+          transparent: true,
+          opacity: 1.2,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      glowMesh.position.z = 20; // Slightly in front to avoid clipping
+      blackHoleGroup.add(glowMesh);
+
+      blackHoleGroup.position.set(0, 0, -5000);
+      blackHoleGroup.visible = false;
+
+      // --- LOGIC VARS ---
       let savedScore = localStorage.getItem("interstellar_score");
       let score = savedScore ? parseInt(savedScore) : 0;
-
-      let width, height, cx, cy;
-      let stars = [];
-      let planets = [];
-      let blackHole = null;
-
-      // 2. SPEED LOGIC
-      let targetFlightSpeed = Math.min(
-        CONFIG.maxFlightSpeed,
-        CONFIG.baseFlightSpeed + score * 2
-      );
-      let currentFlightSpeed = targetFlightSpeed;
+      let currentSpeed = CONFIG.baseFlightSpeed;
       let isBraking = false;
+      let isWarping = false; // General event state
+      let isInTunnel = false; // Specific state "inside tunnel"
+      let tunnelProgress = 0; // 0.0 to 1.0
 
-      let currentTurnX = 0;
-      let currentTurnY = 0;
       let mouse = { x: 0, y: 0 };
-      let isWarping = false;
       let useGyro = false;
 
-      // 3. BRAKE MECHANICS
-      window.addEventListener("mousedown", () => (isBraking = true));
-      window.addEventListener("mouseup", () => (isBraking = false));
-      window.addEventListener("touchstart", () => (isBraking = true), {
-        passive: true,
-      });
-      window.addEventListener("touchend", () => (isBraking = false));
+      let lastTime = performance.now();
 
-      let resizeTimeout;
-      function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-        cx = width / 2;
-        cy = height / 2;
+      // --- INPUT HANDLING ---
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!useGyro && !isTouching && !isInTunnel) {
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        }
+      });
+
+      window.addEventListener("mousedown", () => {
+        isBraking = true;
+      });
+      window.addEventListener("mouseup", () => {
+        isBraking = false;
+      });
+
+      let touchStartX = 0,
+        touchStartY = 0;
+      let isTouching = false;
+
+      window.addEventListener(
+        "touchstart",
+        (e) => {
+          isBraking = true;
+          if (!useGyro && typeof DeviceOrientationEvent !== "undefined") {
+            initGyro();
+          }
+          const t = e.touches[0];
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          isTouching = true;
+          if (!isInTunnel) {
+            joystickBase.style.display = "block";
+            joystickNub.style.display = "block";
+            joystickBase.style.left = touchStartX + "px";
+            joystickBase.style.top = touchStartY + "px";
+            joystickNub.style.left = touchStartX + "px";
+            joystickNub.style.top = touchStartY + "px";
+          }
+        },
+        { passive: false }
+      );
+
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          if (useGyro || !isTouching || isInTunnel) return;
+          e.preventDefault();
+          const t = e.touches[0];
+          const diffX = t.clientX - touchStartX;
+          const diffY = t.clientY - touchStartY;
+          const maxDist = 60;
+          const angle = Math.atan2(diffY, diffX);
+          const dist = Math.min(
+            Math.sqrt(diffX * diffX + diffY * diffY),
+            maxDist
+          );
+          const nubX = touchStartX + Math.cos(angle) * dist;
+          const nubY = touchStartY + Math.sin(angle) * dist;
+          joystickNub.style.left = nubX + "px";
+          joystickNub.style.top = nubY + "px";
+          mouse.x = diffX / 100;
+          mouse.y = -(diffY / 100);
+        },
+        { passive: false }
+      );
+
+      window.addEventListener("touchend", () => {
+        isBraking = false;
+        isTouching = false;
+        joystickBase.style.display = "none";
+        joystickNub.style.display = "none";
         if (!useGyro) {
-          mouse.x = cx;
-          mouse.y = cy;
+          mouse.x = 0;
+          mouse.y = 0;
+        }
+      });
+
+      function handleOrientation(event) {
+        if (!event.alpha && !event.beta) return;
+        let yTilt = event.beta - 45;
+        let xTilt = event.gamma;
+        const tiltClamp = 40;
+        xTilt = Math.max(-tiltClamp, Math.min(tiltClamp, xTilt));
+        yTilt = Math.max(-tiltClamp, Math.min(tiltClamp, yTilt));
+        if (!isInTunnel) {
+          mouse.x = xTilt / tiltClamp;
+          mouse.y = -yTilt / tiltClamp;
         }
       }
 
-      window.addEventListener("resize", () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(resize, 200);
-      });
+      function initGyro() {
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+          DeviceOrientationEvent.requestPermission()
+            .then((state) => {
+              if (state === "granted") {
+                useGyro = true;
+                window.addEventListener("deviceorientation", handleOrientation);
+              }
+            })
+            .catch((e) => console.log(e));
+        } else if (window.DeviceOrientationEvent) {
+          const tempHandler = (e) => {
+            if (e.alpha || e.beta) {
+              useGyro = true;
+              window.removeEventListener("deviceorientation", tempHandler);
+              window.addEventListener("deviceorientation", handleOrientation);
+            }
+          };
+          window.addEventListener("deviceorientation", tempHandler);
+        }
+      }
 
-      // --- i18n & CONTROLS ---
+      // --- GAME FUNCTIONS ---
+      function spawnBlackHole() {
+        if (isWarping) return;
+        blackHoleGroup.visible = true;
+        blackHoleGroup.scale.set(1, 1, 1);
+        const dist = CONFIG.depth * 1.5;
+        const difficulty = Math.min(score, 30) / 30;
+        const maxSpread = THREE.MathUtils.degToRad(10 + difficulty * 130);
+        const angleX = (Math.random() - 0.5) * maxSpread;
+        const angleY = (Math.random() - 0.5) * maxSpread;
+        const spawnPos = new THREE.Vector3(0, 0, -dist);
+        spawnPos.applyEuler(new THREE.Euler(angleX, angleY, 0));
+        spawnPos.applyQuaternion(camera.quaternion);
+        blackHoleGroup.position.copy(spawnPos);
+        updateRadar(true);
+      }
 
+      function updateRadar(active) {
+        radarDot.className = active
+          ? "radar-dot status-active"
+          : "radar-dot status-idle";
+      }
+
+      // Start entry sequence
+      function enterWormhole() {
+        if (isInTunnel || isWarping) return;
+        isWarping = true;
+        isInTunnel = true;
+        tunnelProgress = 0;
+
+        // Hide UI
+        mainUI.style.opacity = 0;
+        joystickBase.style.display = "none";
+        joystickNub.style.display = "none";
+
+        // Freeze hole at origin to travel INSIDE it
+        // Reset camera rotation to align with tunnel
+        blackHoleGroup.position.set(0, 0, 0);
+        blackHoleGroup.rotation.set(0, 0, 0);
+        camera.position.set(0, 0, 0);
+        camera.rotation.set(0, 0, 0);
+
+        // Scale adjustment for massive feel on entry
+        blackHoleGroup.scale.set(1, 1, 1);
+      }
+
+      // End sequence (Exit and reset)
+      function finishWarp() {
+        score++;
+        localStorage.setItem("interstellar_score", score);
+        blackHoleGroup.visible = false;
+        isInTunnel = false;
+        isWarping = false;
+        tunnelProgress = 0;
+        warpFlash.style.opacity = 0;
+        updateRadar(false);
+
+        // Restore UI
+        mainUI.style.opacity = 1;
+        camera.position.set(0, 0, 0);
+        camera.rotation.set(0, 0, 0); // Reset rotation
+
+        setTimeout(spawnBlackHole, Math.random() * 5000 + 2000);
+      }
+
+      setTimeout(spawnBlackHole, 3000);
+
+      // --- ANIMATION LOOP ---
+      const clock = new THREE.Clock();
+      const forwardVec = new THREE.Vector3(0, 0, -1);
+      const velocityVec = new THREE.Vector3();
+      const dummyVec = new THREE.Vector3();
+
+      const MAX_SPEED_CAP = 299492; // 99.9% EXACT CAP
+
+      let currentDisplayVal = 60000;
+      let lastTextUpdate = 0;
+
+      function animate() {
+        const time = performance.now();
+        const delta = clock.getDelta();
+
+        // UI Speed calculation
+        const progressionCurve = 1 - Math.exp(-score * 0.03);
+        // Start from 60k, go up to MAX_SPEED_CAP based on score
+        let targetDisplayVal =
+          60000 + (MAX_SPEED_CAP - 60000) * progressionCurve;
+
+        if (isBraking) {
+          targetDisplayVal *= CONFIG.brakeFactor;
+        } else if (isInTunnel) {
+          // Constant max speed in tunnel
+          targetDisplayVal = MAX_SPEED_CAP;
+        }
+
+        // Absolute Hard Limiter
+        if (targetDisplayVal > MAX_SPEED_CAP) targetDisplayVal = MAX_SPEED_CAP;
+
+        currentDisplayVal += (targetDisplayVal - currentDisplayVal) * 0.1;
+
+        // Redundant safety check
+        if (currentDisplayVal > MAX_SPEED_CAP)
+          currentDisplayVal = MAX_SPEED_CAP;
+
+        const ratio = currentDisplayVal / 60000;
+        currentSpeed = 600 * Math.pow(ratio, 1.43);
+
+        // --- Tunnel Logic ---
+        if (isInTunnel) {
+          tunnelProgress += delta * 0.4;
+
+          if (tunnelProgress >= 1.0) {
+            finishWarp();
+          } else {
+            const currentZ = -TUNNEL_CONFIG.depth * tunnelProgress;
+            const bendX = getCurveOffset(tunnelProgress);
+
+            camera.position.set(bendX, 0, currentZ);
+
+            const lookAheadStep = 0.05;
+            const lookAtZ =
+              -TUNNEL_CONFIG.depth * (tunnelProgress + lookAheadStep);
+            const lookAtX = getCurveOffset(
+              Math.min(1, tunnelProgress + lookAheadStep)
+            );
+            camera.lookAt(lookAtX, 0, lookAtZ);
+
+            camera.rotation.z = Math.sin(time * 0.005) * 0.2;
+
+            if (tunnelProgress > 0.35) {
+              const flashOpacity = (tunnelProgress - 0.35) / 0.4;
+              warpFlash.style.opacity = Math.min(1, Math.max(0, flashOpacity));
+            } else {
+              warpFlash.style.opacity = 0;
+            }
+          }
+        }
+        // --- Normal Flight Logic ---
+        else {
+          camera.rotateX(mouse.y * CONFIG.turnSpeed * delta);
+          camera.rotateY(-mouse.x * CONFIG.turnSpeed * delta);
+
+          velocityVec
+            .copy(forwardVec)
+            .applyQuaternion(camera.quaternion)
+            .multiplyScalar(currentSpeed * delta);
+
+          if (blackHoleGroup.visible) {
+            blackHoleGroup.position.sub(velocityVec);
+            blackHoleGroup.lookAt(camera.position);
+
+            const distToHole = blackHoleGroup.position.length();
+
+            // Dynamic Hitbox
+            const hitbox = Math.max(200, currentSpeed * delta * 1.5);
+
+            if (distToHole < hitbox) {
+              enterWormhole(); // Direct Entry
+            }
+
+            if (distToHole > CONFIG.depth * 2.5) {
+              blackHoleGroup.visible = false;
+              updateRadar(false);
+              setTimeout(spawnBlackHole, 1000);
+            }
+          }
+
+          // Stars
+          const stretchFactor = isBraking ? 0.04 : 0.06;
+
+          dummyVec
+            .copy(velocityVec)
+            .normalize()
+            .multiplyScalar(currentSpeed * stretchFactor);
+
+          for (let i = 0; i < CONFIG.starCount; i++) {
+            const i6 = i * 6;
+            posArr[i6] -= velocityVec.x;
+            posArr[i6 + 1] -= velocityVec.y;
+            posArr[i6 + 2] -= velocityVec.z;
+            if (posArr[i6] > halfSpread) posArr[i6] -= spread;
+            else if (posArr[i6] < -halfSpread) posArr[i6] += spread;
+            if (posArr[i6 + 1] > halfSpread) posArr[i6 + 1] -= spread;
+            else if (posArr[i6 + 1] < -halfSpread) posArr[i6 + 1] += spread;
+            if (posArr[i6 + 2] > halfSpread) posArr[i6 + 2] -= spread;
+            else if (posArr[i6 + 2] < -halfSpread) posArr[i6 + 2] += spread;
+            posArr[i6 + 3] = posArr[i6] + dummyVec.x;
+            posArr[i6 + 4] = posArr[i6 + 1] + dummyVec.y;
+            posArr[i6 + 5] = posArr[i6 + 2] + dummyVec.z;
+          }
+          posAttr.needsUpdate = true;
+        }
+
+        // UI Updates
+        if (time - lastTextUpdate > 20) {
+          // Display capped value
+          let uiSpeed = Math.min(currentDisplayVal, MAX_SPEED_CAP);
+          speedEl.innerText = Math.floor(uiSpeed).toLocaleString();
+
+          lastTextUpdate = time;
+        }
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+
+      // Star Array Ref
+      const posAttr = starGeo.attributes.position;
+      const posArr = posAttr.array;
+
+      animate();
+
+      // --- Translations ---
       const translations = {
         en: {
           title: "Hi, I am Sebas! 👾 | iamsebas.dev",
@@ -551,7 +1103,6 @@
       };
 
       let currentLang = "en";
-
       function setLanguage(lang) {
         if (!translations[lang]) return;
         currentLang = lang;
@@ -559,472 +1110,18 @@
         document.querySelectorAll("[data-translate-key]").forEach((el) => {
           const key = el.getAttribute("data-translate-key");
           if (translations[lang][key]) {
-            if (key === "title") {
-              document.title = translations[lang][key];
-            } else {
-              el.innerHTML = translations[lang][key];
-            }
+            if (key === "title") document.title = translations[lang][key];
+            else el.innerHTML = translations[lang][key];
           }
         });
       }
 
-      // Touch state variables
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let isTouching = false;
-      let isSteering = false;
-      const touchDeadzone = 10;
-      const joystickBaseRadius = 60;
-
-      function setupTouchControls() {
-        console.log("Setting up touch controls.");
-        useGyro = false;
-
-        window.addEventListener(
-          "touchstart",
-          (e) => {
-            if (useGyro) return;
-            const touch = e.touches[0];
-            isTouching = true;
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-
-            joystickBase.style.display = "block";
-            joystickNub.style.display = "block";
-            joystickBase.style.left = `${touchStartX}px`;
-            joystickBase.style.top = `${touchStartY}px`;
-            joystickNub.style.left = `${touchStartX}px`;
-            joystickNub.style.top = `${touchStartY}px`;
-          },
-          { passive: false }
-        );
-
-        window.addEventListener(
-          "touchmove",
-          (e) => {
-            if (useGyro || !isTouching) return;
-            e.preventDefault();
-
-            const touch = e.touches[0];
-            const diffX = touch.clientX - touchStartX;
-            const diffY = touch.clientY - touchStartY;
-
-            const distance = Math.sqrt(diffX * diffX + diffY * diffY);
-
-            if (!isSteering && distance > touchDeadzone) {
-              isSteering = true;
-            }
-
-            if (isSteering) {
-              mouse.x = cx + diffX * 2;
-              mouse.y = cy + diffY * 2;
-
-              const maxSteer = width / 1.5;
-              mouse.x = Math.max(
-                cx - maxSteer,
-                Math.min(cx + maxSteer, mouse.x)
-              );
-              mouse.y = Math.max(
-                cy - maxSteer,
-                Math.min(cy + maxSteer, mouse.y)
-              );
-
-              // Update nub position
-              let nubX = touchStartX + diffX;
-              let nubY = touchStartY + diffY;
-
-              if (distance > joystickBaseRadius) {
-                const angle = Math.atan2(diffY, diffX);
-                nubX = touchStartX + Math.cos(angle) * joystickBaseRadius;
-                nubY = touchStartY + Math.sin(angle) * joystickBaseRadius;
-              }
-
-              joystickNub.style.left = `${nubX}px`;
-              joystickNub.style.top = `${nubY}px`;
-            }
-          },
-          { passive: false }
-        );
-
-        window.addEventListener("touchend", (e) => {
-          if (useGyro) return;
-
-          isTouching = false;
-          isSteering = false;
-
-          mouse.x = cx;
-          mouse.y = cy;
-
-          joystickBase.style.display = "none";
-          joystickNub.style.display = "none";
-        });
-      }
-
-      async function initGyro() {
-        if (typeof DeviceOrientationEvent.requestPermission === "function") {
-          try {
-            const permissionState =
-              await DeviceOrientationEvent.requestPermission();
-            if (permissionState === "granted") {
-              useGyro = true;
-              window.addEventListener("deviceorientation", handleOrientation);
-              console.log("Gyro enabled.");
-            } else {
-              console.log("Gyro permission denied, falling back to touch.");
-              setupTouchControls();
-            }
-          } catch (error) {
-            console.log(
-              "Gyro requestPermission error, falling back to touch:",
-              error
-            );
-            setupTouchControls();
-          }
-        } else if (window.DeviceOrientationEvent) {
-          let hasReceivedData = false;
-          const gyroListener = (event) => {
-            if (event.gamma !== null || event.beta !== null) {
-              hasReceivedData = true;
-              useGyro = true;
-              window.removeEventListener("deviceorientation", gyroListener);
-              window.addEventListener("deviceorientation", handleOrientation);
-              console.log("Gyro enabled (detected data).");
-            }
-          };
-          window.addEventListener("deviceorientation", gyroListener);
-
-          setTimeout(() => {
-            if (!hasReceivedData) {
-              window.removeEventListener("deviceorientation", gyroListener);
-              console.log(
-                "No gyro data received, falling back to touch controls."
-              );
-              setupTouchControls();
-            }
-          }, 500);
-        } else {
-          console.log("No gyro support, falling back to touch controls.");
-          setupTouchControls();
-        }
-      }
-
-      function initControls() {
-        const isTouchDevice =
-          "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
-        // Language Setup
-        const userLang = (navigator.language || "en").slice(0, 2);
-        setLanguage(userLang === "es" ? "es" : "en");
-        langSwitcher.addEventListener("click", () => {
-          const newLang = currentLang === "en" ? "es" : "en";
-          setLanguage(newLang);
-        });
-
-        // Control Setup
-        if (isTouchDevice) {
-          initGyro();
-        } else {
-          console.log("Setting up mouse controls for desktop.");
-          window.addEventListener("mousemove", (e) => {
-            if (!useGyro) {
-              mouse.x = e.clientX;
-              mouse.y = e.clientY;
-            }
-          });
-        }
-      }
-
-      // Initialize everything on load
-      resize();
-      initControls();
-
-      function handleOrientation(event) {
-        let yTilt = event.beta - 45;
-        let xTilt = event.gamma;
-
-        const tiltClamp = 40;
-        xTilt = Math.max(-tiltClamp, Math.min(tiltClamp, xTilt));
-        yTilt = Math.max(-tiltClamp, Math.min(tiltClamp, yTilt));
-
-        mouse.x = cx + xTilt * (width / 80);
-        mouse.y = cy + yTilt * (height / 80);
-      }
-
-      function randomRange(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-
-      class Planet {
-        constructor() {
-          this.reset(true);
-        }
-        reset(initial) {
-          const spreadX = width * CONFIG.spawnSpreadMultiplier;
-          const spreadY = height * CONFIG.spawnSpreadMultiplier;
-          this.x = randomRange(-spreadX, spreadX);
-          this.y = randomRange(-spreadY, spreadY);
-          this.z = initial
-            ? randomRange(500, CONFIG.depth)
-            : CONFIG.depth + randomRange(0, 5000);
-          this.size = randomRange(CONFIG.planetMinSize, CONFIG.planetMaxSize);
-          const hue = randomRange(180, 280);
-          this.color1 = `hsl(${hue}, 20%, 25%)
-`;
-        }
-        update() {
-          this.z -= currentFlightSpeed;
-          this.x -= currentTurnX * (this.z * 0.005);
-          this.y -= currentTurnY * (this.z * 0.005);
-          const boundaryX = width * (CONFIG.spawnSpreadMultiplier + 1);
-          if (this.z < 80 || Math.abs(this.x) > boundaryX) this.reset();
-        }
-        draw() {
-          const p = 400 / this.z;
-          const sx = cx + this.x * p;
-          const sy = cy + this.y * p;
-          const ss = this.size * p;
-          if (sx < -ss || sx > width + ss || sy < -ss || sy > height + ss)
-            return;
-          const grad = ctx.createRadialGradient(
-            sx - ss * 0.3,
-            sy - ss * 0.3,
-            ss * 0.1,
-            sx,
-            sy,
-            ss
-          );
-          grad.addColorStop(0, this.color1);
-          grad.addColorStop(1, "#020202");
-          ctx.beginPath();
-          ctx.fillStyle = grad;
-          ctx.arc(sx, sy, ss, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      class Star {
-        constructor() {
-          this.reset(true);
-        }
-        reset(initial) {
-          const spreadX = width * CONFIG.spawnSpreadMultiplier;
-          const spreadY = height * CONFIG.spawnSpreadMultiplier;
-          this.x = randomRange(-spreadX, spreadX);
-          this.y = randomRange(-spreadY, spreadY);
-          this.z = initial
-            ? randomRange(20, CONFIG.depth)
-            : CONFIG.depth + randomRange(0, 5000);
-        }
-        update() {
-          this.z -= currentFlightSpeed;
-          this.x -= currentTurnX * (this.z * 0.002);
-          this.y -= currentTurnY * (this.z * 0.002);
-          const boundaryX = width * (CONFIG.spawnSpreadMultiplier + 1);
-          if (this.z <= 20 || Math.abs(this.x) > boundaryX) this.reset();
-        }
-        draw() {
-          const p = 400 / this.z;
-          const x = cx + this.x * p;
-          const y = cy + this.y * p;
-          const alpha = Math.min(1, 1 - this.z / (CONFIG.depth + 1000));
-          ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-          ctx.lineWidth = 1.3;
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          const op = 400 / (this.z + currentFlightSpeed * 2);
-          const ox = cx + this.x * op;
-          const oy = cy + this.y * op;
-          ctx.lineTo(ox, oy);
-          ctx.stroke();
-        }
-      }
-
-      class BlackHole {
-        constructor() {
-          this.state = "spawning";
-          this.x = 0;
-          this.y = 0;
-          this.z = 0;
-          this.prepareSpawn();
-        }
-        prepareSpawn() {
-          this.state = "spawning";
-          this.z = 99999;
-          updateRadar(false);
-          setTimeout(() => {
-            if (!isWarping) this.spawn();
-          }, randomRange(CONFIG.spawnCooldownMin, CONFIG.spawnCooldownMax));
-        }
-        spawn() {
-          this.state = "active";
-          updateRadar(true);
-          const angle = Math.random() * Math.PI * 2;
-          const distance =
-            Math.max(width, height) *
-            randomRange(1.2, CONFIG.spawnDistanceMultiplier);
-          this.x = Math.cos(angle) * distance;
-          this.y = Math.sin(angle) * distance;
-          this.z = CONFIG.depth + 4000;
-          this.radius = Math.max(150, CONFIG.blackHoleBaseRadius - score * 3);
-        }
-        update() {
-          if (this.state === "spawning") return;
-          this.z -= currentFlightSpeed;
-          this.x -= currentTurnX * (this.z * 0.005);
-          this.y -= currentTurnY * (this.z * 0.005);
-
-          // FIX: Widened collision detection zone (0 to 800) to catch high-speed approaches (Tunneling fix)
-          if (!isWarping && this.z < 800 && this.z > 0) {
-            const p = 400 / this.z;
-            const sx = cx + this.x * p;
-            const sy = cy + this.y * p;
-            const dist = Math.sqrt((sx - cx) ** 2 + (sy - cy) ** 2);
-            // Slightly forgiving hit radius
-            if (dist < this.radius * p * 1.5) triggerWarp();
-          }
-          if (this.z < -2000) this.prepareSpawn();
-        }
-        draw() {
-          if (this.state === "spawning" || this.z <= 10) return;
-          const p = 400 / this.z;
-          const sx = cx + this.x * p;
-          const sy = cy + this.y * p;
-          const s = this.radius * p;
-
-          const distFromCenter = Math.sqrt((sx - cx) ** 2 + (sy - cy) ** 2);
-          if (this.z < 4000 && distFromCenter < width * 2) {
-            const lockSize = s * 1.8;
-            const alpha =
-              Math.min(1, 400 / this.z) *
-              (0.8 + Math.sin(Date.now() / 100) * 0.2);
-            ctx.strokeStyle = `rgba(250, 70, 1, ${alpha})`;
-            ctx.lineWidth = 2;
-            const d = 25;
-            ctx.beginPath();
-            ctx.moveTo(sx - lockSize, sy - lockSize + d);
-            ctx.lineTo(sx - lockSize, sy - lockSize);
-            ctx.lineTo(sx - lockSize + d, sy - lockSize);
-            ctx.moveTo(sx + lockSize - d, sy - lockSize);
-            ctx.lineTo(sx + lockSize, sy - lockSize);
-            ctx.lineTo(sx + lockSize, sy - lockSize + d);
-            ctx.moveTo(sx + lockSize, sy + lockSize - d);
-            ctx.lineTo(sx + lockSize, sy + lockSize);
-            ctx.lineTo(sx + lockSize - d, sy + lockSize);
-            ctx.moveTo(sx - lockSize + d, sy + lockSize);
-            ctx.lineTo(sx - lockSize, sy + lockSize);
-            ctx.lineTo(sx - lockSize, sy + lockSize - d);
-            ctx.stroke();
-          }
-
-          // Opacity fade-in
-          const opacity = Math.min(1, 1 - (this.z - 6000) / 3000);
-          if (opacity <= 0) return;
-          ctx.globalAlpha = opacity;
-
-          ctx.shadowBlur = 40;
-          ctx.shadowColor = "#fa4601";
-          ctx.fillStyle = "#fa4601";
-          ctx.beginPath();
-          ctx.arc(sx, sy, s * 1.1, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.shadowBlur = 10;
-          ctx.fillStyle = "#fff0e6";
-          ctx.beginPath();
-          ctx.arc(sx, sy, s, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = "#000";
-          ctx.beginPath();
-          ctx.arc(sx, sy, s * 0.95, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalAlpha = 1;
-        }
-      }
-
-      for (let i = 0; i < CONFIG.starCount; i++) stars.push(new Star());
-      for (let i = 0; i < CONFIG.planetCount; i++) planets.push(new Planet());
-      blackHole = new BlackHole();
-
-      function updateRadar(active) {
-        if (active) radarDot.className = "radar-dot status-active";
-        else radarDot.className = "radar-dot status-idle";
-      }
-
-      function triggerWarp() {
-        isWarping = true;
-        currentFlightSpeed = CONFIG.maxFlightSpeed * 1.5; // Visual burst speed
-        warpFlash.style.opacity = 1;
-
-        score++;
-        localStorage.setItem("interstellar_score", score);
-
-        // Update target speed based on new score
-        targetFlightSpeed = Math.min(
-          CONFIG.maxFlightSpeed,
-          CONFIG.baseFlightSpeed + score * 2
-        );
-
-        setTimeout(() => {
-          blackHole.prepareSpawn();
-          planets.forEach((p) => p.reset(true));
-          stars.forEach((s) => s.reset(true));
-
-          warpFlash.style.opacity = 0;
-          isWarping = false;
-        }, 1500);
-      }
-
-      function animate() {
-        ctx.fillStyle = "rgba(0, 0, 0, 1)";
-        ctx.fillRect(0, 0, width, height);
-
-        // --- SPEED CONTROL & DISPLAY ---
-        if (!isWarping) {
-          // Apply braking factor if holding click
-          let activeSpeed = isBraking
-            ? targetFlightSpeed * CONFIG.brakeFactor
-            : targetFlightSpeed;
-          // Smooth transition for speed
-          currentFlightSpeed += (activeSpeed - currentFlightSpeed) * 0.1;
-
-          // Update HUD Display (Velocity * Multiplier)
-          let displaySpeed = Math.floor(
-            currentFlightSpeed * CONFIG.speedMultiplier
-          ).toLocaleString();
-          speedEl.innerText = displaySpeed;
-
-          const targetX = (mouse.x - cx) / cx;
-          const targetY = (mouse.y - cy) / cy;
-
-          // Increase sensitivity when braking for precision steering
-          let sensitivity = isBraking
-            ? CONFIG.turnSensitivity * 1.5
-            : CONFIG.turnSensitivity;
-
-          currentTurnX +=
-            (targetX * CONFIG.turnSpeedMax - currentTurnX) * sensitivity;
-          currentTurnY +=
-            (targetY * CONFIG.turnSpeedMax - currentTurnY) * sensitivity;
-        }
-
-        stars.forEach((s) => {
-          s.update();
-          s.draw();
-        });
-        let renderQueue = [...planets];
-        renderQueue.push(blackHole);
-        renderQueue.sort((a, b) => b.z - a.z);
-        renderQueue.forEach((obj) => {
-          obj.update();
-          obj.draw();
-        });
-
-        requestAnimationFrame(animate);
-      }
-
-      animate();
+      const userLang = (navigator.language || "en").slice(0, 2);
+      setLanguage(userLang === "es" ? "es" : "en");
+      langSwitcher.addEventListener("click", () => {
+        const newLang = currentLang === "en" ? "es" : "en";
+        setLanguage(newLang);
+      });
     </script>
   </body>
 </html>

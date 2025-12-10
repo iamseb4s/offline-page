@@ -23,7 +23,7 @@ Simply open the `index.html` file in any modern web browser. No web server is re
 - **HTML5**
 - **CSS3**
 - **JavaScript (ES6+)**
-- **HTML5 Canvas** for rendering the 2D/3D space simulation.
+- **Three.js (WebGL)** for rendering the 3D space simulation.
 
 ## 🎨 Final Touches
 
